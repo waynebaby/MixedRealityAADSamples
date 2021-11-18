@@ -28,11 +28,8 @@ namespace UWPAADSample
         // Below are the clientId (Application Id) of your app registration and the tenant information.
         // You have to replace:
         // - the content of ClientID with the Application Id for your app registration
-        private const string ClientId = "da357db4-ae75-4d9d-bf1c-520a8e7d4a40";
-        //private const string ClientId = "d76b333f-f49d-455e-b2eb-1110f9c21a19";
-
-        private const string Tenant = "microsoft.onmicrosoft.com";//
-        //private const string Tenant = "AACMRTestAAD1outlook.onmicrosoft.com"; // Alternatively "[Enter your tenant, as obtained from the Azure portal, e.g. kko365.onmicrosoft.com]"
+        private const string ClientId = "d76b333f-f49d-455e-b2eb-1110f9c21a19";
+        private const string Tenant = "AACMRTestAAD1outlook.onmicrosoft.com"; // Alternatively "[Enter your tenant, as obtained from the Azure portal, e.g. kko365.onmicrosoft.com]"
         private const string Authority = "https://login.microsoftonline.com/" + Tenant;
 
         // The MSAL Public client app
