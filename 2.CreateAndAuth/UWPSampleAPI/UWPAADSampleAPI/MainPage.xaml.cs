@@ -23,7 +23,8 @@ namespace UWPAADSample
     {
 
         //Set the scope for API call to user.read
-        private string[] scopes = new string[] { "user.read", "api://ea9a5da2-e951-40c0-814c-d0536d3707a7/user_impersonation" };
+        private string[] scopesGraph = new string[] { "https://graph.microsoft.com/User.Read" };
+        private string[] scopesCustome=new string[]{ "api://ea9a5da2-e951-40c0-814c-d0536d3707a7/user_impersonation" };
         private string customeAPIUrl = "https://mrapp1apifunctions.azurewebsites.net/api/Function1";
         // Below are the clientId (Application Id) of your app registration and the tenant information.
         // You have to replace:
@@ -111,7 +112,7 @@ namespace UWPAADSample
             try
             {
                 // Sign in user using MSAL and obtain an access token for Microsoft Graph
-                GraphServiceClient graphClient = await SignInAndInitializeGraphServiceClient(scopes);
+                GraphServiceClient graphClient = await SignInAndInitializeGraphServiceClient(scopesGraph);
 
                 // Call the /me endpoint of Graph
                 User graphUser = await graphClient.Me.Request().GetAsync();
@@ -162,7 +163,6 @@ namespace UWPAADSample
             try
             {
                 authResult = await PublicClientApp.AcquireTokenSilent(scopes, firstAccount)
-                    
                                                   .ExecuteAsync();
             }
             catch (MsalUiRequiredException ex)
@@ -186,9 +186,10 @@ namespace UWPAADSample
         {
             try
             {
-                var token = await SignInUserAndGetTokenUsingMSAL(scopes);
+                var token = await SignInUserAndGetTokenUsingMSAL(scopesCustome);
                 var result = await GetHttpContentWithToken(customeAPIUrl, token);
                 await DisplayMessageAsync(result);
+                this.SignOutButton.Visibility = Visibility.Visible;
             }
             catch (Exception ex)
             {
