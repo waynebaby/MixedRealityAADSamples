@@ -182,7 +182,7 @@ public class MainController : MonoBehaviour
             var containerName = "targetcontainer";
             var sb = new StringBuilder();
 
-            //Get Container Properties
+            
             var existsResponse = await CallWithTokenAsync($"{storageAccountUrl}{containerName}?restype=container", HttpMethod.Get, token);
             if (existsResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
