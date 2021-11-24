@@ -234,69 +234,67 @@ namespace UWPAADSample
         {
             try
             {
-                //var token = await SignInUserAndGetTokenUsingMSAL(scopesStorage);
-                //var sb = new StringBuilder();
-                //BlobServiceClient service = new BlobServiceClient(new Uri(storageAccountUrl), new StringTokenCredential(token));
-                //BlobContainerClient container = service.GetBlobContainerClient("targetcontainer");
-                //if (!await container.ExistsAsync())
-                //{
-                //    var containerResponse = await container.CreateAsync();
-                //    sb.AppendLine($"Created container:{container.Name} at{containerResponse.Value.LastModified }");
-                //}
-                //var blob = container.GetBlobClient(Guid.NewGuid().ToString());
-                ////if (!await blob.ExistsAsync())
-                ////{
-                //    var uploadResponse = await blob.UploadAsync(new BinaryData(Guid.NewGuid().ToByteArray()));
-                //    sb.AppendLine($"Created container:{blob.Name} at{uploadResponse.Value.LastModified }");
-                ////}
-                //var content = await blob.DownloadContentAsync();
-                //var contentGuid = new Guid(content.Value.Content.ToArray());
-                //sb.AppendLine($"File {blob.Name},  Content:{contentGuid}");
-
-
-
                 var token = await SignInUserAndGetTokenUsingMSAL(scopesStorage);
-                var containerName = "targetcontainer";
                 var sb = new StringBuilder();
+                BlobServiceClient service = new BlobServiceClient(new Uri(storageAccountUrl), new StringTokenCredential(token));
+                BlobContainerClient container = service.GetBlobContainerClient("targetcontainer");
+                if (!await container.ExistsAsync())
+                {
+                    var containerResponse = await container.CreateAsync();
+                    sb.AppendLine($"Created container:{container.Name} at{containerResponse.Value.LastModified }");
+                }
+                var blob = container.GetBlobClient(Guid.NewGuid().ToString());
+                //if (!await blob.ExistsAsync())
+                //{
+                var uploadResponse = await blob.UploadAsync(new BinaryData(Guid.NewGuid().ToByteArray()));
+                sb.AppendLine($"Created container:{blob.Name} at{uploadResponse.Value.LastModified }");
+                //}
+                var content = await blob.DownloadContentAsync();
+                var contentGuid = new Guid(content.Value.Content.ToArray());
+                sb.AppendLine($"File {blob.Name},  Content:{contentGuid}");
 
 
-                var existsResponse = await CallWithTokenAsync($"{storageAccountUrl}{containerName}?restype=container", HttpMethod.Get, token);
-                if (existsResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    var createContainerResponse = await CallWithTokenAsync($"{storageAccountUrl}{containerName}?restype=container", HttpMethod.Put, token);
-                    if (createContainerResponse.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        sb.AppendLine($"Created container:{containerName}");
-                    }
-                    else
-                    {
-                        sb.AppendLine($"Create container failed:{containerName}");
-                    }
-                }
-                else
-                {
-                    sb.AppendLine($"Check container existed:{containerName} {existsResponse.StatusCode}");
-                }
-                var blobName = Guid.NewGuid().ToString();
-                var existGetBlobRequest = await CallWithTokenAsync($"{storageAccountUrl}{containerName}/{blobName}", HttpMethod.Get, token);
-                if (existGetBlobRequest.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    var createBlobResponse = await CallWithTokenAsync($"{storageAccountUrl}{containerName}/{blobName}", HttpMethod.Put, token,
-                        req => req.Content = new ByteArrayContent(Guid.NewGuid().ToByteArray()));
-                    if (createBlobResponse.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        sb.AppendLine($"Created blob:{blobName}");
-                    }
-                    else
-                    {
-                        sb.AppendLine($"Create blob failed:{blobName}");
-                    }
-                }
-                else
-                {
-                    sb.AppendLine($"Check blob existed:{blobName} {existGetBlobRequest.StatusCode}");
-                }
-   
+
+                //var token = await SignInUserAndGetTokenUsingMSAL(scopesStorage);
+                //var containerName = "targetcontainer";
+                //var sb = new StringBuilder();
+                //var existsResponse = await CallWithTokenAsync($"{storageAccountUrl}{containerName}?restype=container", HttpMethod.Get, token);
+                //if (existsResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+                //{
+                //    var createContainerResponse = await CallWithTokenAsync($"{storageAccountUrl}{containerName}?restype=container", HttpMethod.Put, token);
+                //    if (createContainerResponse.StatusCode == System.Net.HttpStatusCode.OK)
+                //    {
+                //        sb.AppendLine($"Created container:{containerName}");
+                //    }
+                //    else
+                //    {
+                //        sb.AppendLine($"Create container failed:{containerName}");
+                //    }
+                //}
+                //else
+                //{
+                //    sb.AppendLine($"Check container existed:{containerName} {existsResponse.StatusCode}");
+                //}
+                //var blobName = Guid.NewGuid().ToString();
+                //var existGetBlobRequest = await CallWithTokenAsync($"{storageAccountUrl}{containerName}/{blobName}", HttpMethod.Get, token);
+                //if (existGetBlobRequest.StatusCode == System.Net.HttpStatusCode.NotFound)
+                //{
+                //    var createBlobResponse = await CallWithTokenAsync($"{storageAccountUrl}{containerName}/{blobName}", HttpMethod.Put, token,
+                //        req => req.Content = new ByteArrayContent(Guid.NewGuid().ToByteArray()));
+                //    if (createBlobResponse.StatusCode == System.Net.HttpStatusCode.OK)
+                //    {
+                //        sb.AppendLine($"Created blob:{blobName}");
+                //    }
+                //    else
+                //    {
+                //        sb.AppendLine($"Create blob failed:{blobName}");
+                //    }
+                //}
+                //else
+                //{
+                //    sb.AppendLine($"Check blob existed:{blobName} {existGetBlobRequest.StatusCode}");
+                //}
+
                 await DisplayMessageAsync(sb.ToString());
                 this.SignOutButton.Visibility = Visibility.Visible;
             }
