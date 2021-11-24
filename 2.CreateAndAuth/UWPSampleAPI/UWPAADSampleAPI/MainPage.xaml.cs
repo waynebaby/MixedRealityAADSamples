@@ -24,7 +24,7 @@ namespace UWPAADSample
 
         //Set the scope for API call to user.read
         private string[] scopesGraph = new string[] { "https://graph.microsoft.com/User.Read" };
-        private string[] scopesCustome=new string[]{ "api://ea9a5da2-e951-40c0-814c-d0536d3707a7/user_impersonation" };
+        private string[] scopesCustom = new string[] { "api://ea9a5da2-e951-40c0-814c-d0536d3707a7/user_impersonation" };
         private string customeAPIUrl = "https://mrapp1apifunctions.azurewebsites.net/api/Function1";
         // Below are the clientId (Application Id) of your app registration and the tenant information.
         // You have to replace:
@@ -169,12 +169,12 @@ namespace UWPAADSample
             {
                 // A MsalUiRequiredException happened on AcquireTokenSilentAsync. This indicates you need to call AcquireTokenAsync to acquire a token
                 Debug.WriteLine($"MsalUiRequiredException: {ex.Message}");
-           
-             
-                    authResult = await PublicClientApp.AcquireTokenInteractive(scopes)
-                                                .ExecuteAsync()
-                                                .ConfigureAwait(false);
-                
+
+
+                authResult = await PublicClientApp.AcquireTokenInteractive(scopes)
+                                            .ExecuteAsync()
+                                            .ConfigureAwait(false);
+
 
             }
             return authResult.AccessToken;
@@ -186,7 +186,7 @@ namespace UWPAADSample
         {
             try
             {
-                var token = await SignInUserAndGetTokenUsingMSAL(scopesCustome);
+                var token = await SignInUserAndGetTokenUsingMSAL(scopesCustom);
                 var result = await GetHttpContentWithToken(customeAPIUrl, token);
                 await DisplayMessageAsync(result);
                 this.SignOutButton.Visibility = Visibility.Visible;
@@ -196,7 +196,7 @@ namespace UWPAADSample
                 await DisplayMessageAsync($"Error CallApi_Click:{System.Environment.NewLine}{ex}");
                 return;
             }
-           
+
         }
 
         /// <summary>
