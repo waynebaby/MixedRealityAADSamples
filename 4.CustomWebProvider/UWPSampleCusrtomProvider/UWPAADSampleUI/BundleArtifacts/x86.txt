@@ -1,0 +1,2 @@
+MainPackage=C:\HoLoLabsNew\MixedRealityAADSamples\3.VisitPaaS\UWPSamplePaaS\UWPAADSamplePaaS\bin\x86\Debug\UWPAADSamplePaaS_1.0.1.0_x86_Debug.msix
+SymbolPackage=C:\HoLoLabsNew\MixedRealityAADSamples\3.VisitPaaS\UWPSamplePaaS\UWPAADSamplePaaS\obj\x86\Debug\Symbols\UWPAADSamplePaaS_1.0.1.0_x86_Debug.appxsym

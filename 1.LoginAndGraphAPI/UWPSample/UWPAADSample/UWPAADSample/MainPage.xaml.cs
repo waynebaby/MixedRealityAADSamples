@@ -13,6 +13,9 @@ using Windows.Security.Credentials;
 using Windows.Security.Authentication.Web.Core;
 using System.Text;
 using System.IO;
+using Windows.UI.Popups;
+using Windows.UI.Xaml.Controls.Primitives;
+using Windows.UI.Xaml.Documents;
 
 namespace UWPAADSample
 {
@@ -52,6 +55,20 @@ namespace UWPAADSample
                 new DelegateAuthenticationProvider(async (requestMessage) =>
                 {
                     requestMessage.Headers.Authorization = new AuthenticationHeaderValue("bearer", await SignInUserAndGetTokenUsingMSAL(scopes));
+                }));
+
+            return graphClient;
+        }
+        /// <summary>
+        /// Sign in user using MSAL and obtain a token for Microsoft Graph
+        /// </summary>
+        /// <returns>GraphServiceClient</returns>
+        private async Task<GraphServiceClient> SignInAndInitializeGraphServiceClientDC(string[] scopes)
+        {
+            GraphServiceClient graphClient = new GraphServiceClient(MSGraphURL,
+                new DelegateAuthenticationProvider(async (requestMessage) =>
+                {
+                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("bearer", await SignInUserAndGetTokenUsingMSALDC(scopes));
                 }));
 
             return graphClient;
@@ -149,6 +166,38 @@ namespace UWPAADSample
                 await DisplayMessageAsync($"Error Acquiring Token Silently:{System.Environment.NewLine}{ex}");
                 return;
             }
+        }        /// <summary>
+                 /// Call AcquireTokenAsync - to acquire a token requiring user to sign in
+                 /// </summary>
+        private async void CallGraphButtonDC_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Sign in user using MSAL and obtain an access token for Microsoft Graph
+                GraphServiceClient graphClient = await SignInAndInitializeGraphServiceClientDC(scopes);
+
+                // Call the /me endpoint of Graph
+                User graphUser = await graphClient.Me.Request().GetAsync();
+
+                // Go back to the UI thread to make changes to the UI
+                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                {
+                    ResultText.Text = "Display Name: " + graphUser.DisplayName + "\nBusiness Phone: " + graphUser.BusinessPhones.FirstOrDefault()
+                                      + "\nGiven Name: " + graphUser.GivenName + "\nid: " + graphUser.Id
+                                      + "\nUser Principal Name: " + graphUser.UserPrincipalName;
+                    DisplayBasicTokenInfo(authResult);
+                    this.SignOutButton.Visibility = Visibility.Visible;
+                });
+            }
+            catch (MsalException msalEx)
+            {
+                await DisplayMessageAsync($"Error Acquiring Token:{System.Environment.NewLine}{msalEx}");
+            }
+            catch (Exception ex)
+            {
+                await DisplayMessageAsync($"Error Acquiring Token Silently:{System.Environment.NewLine}{ex}");
+                return;
+            }
         }
         /// <summary>
         /// Call AcquireTokenAsync - to acquire a token requiring user to sign in
@@ -208,25 +257,88 @@ namespace UWPAADSample
             try
             {
                 authResult = await PublicClientApp.AcquireTokenSilent(scopes, firstAccount)
-                    
+
                                                   .ExecuteAsync();
             }
             catch (MsalUiRequiredException ex)
             {
                 // A MsalUiRequiredException happened on AcquireTokenSilentAsync. This indicates you need to call AcquireTokenAsync to acquire a token
                 Debug.WriteLine($"MsalUiRequiredException: {ex.Message}");
-           
-             
-                    authResult = await PublicClientApp.AcquireTokenInteractive(scopes)
-                    
-                                                .ExecuteAsync()
-                                                .ConfigureAwait(false);
-                
+
+
+                authResult = await PublicClientApp.AcquireTokenInteractive(scopes)
+
+                                            .ExecuteAsync()
+                                            .ConfigureAwait(false);
+
 
             }
             return authResult.AccessToken;
         }
+        private async Task<string> SignInUserAndGetTokenUsingMSALDC(string[] scopes)
+        {
+            // Initialize the MSAL library by building a public client application
+            PublicClientApp = PublicClientApplicationBuilder.Create(ClientId)
+                .WithAuthority(Authority)
+                .WithUseCorporateNetwork(true)
+                .WithRedirectUri("https://login.microsoftonline.com/common/oauth2/nativeclient")
+                 .WithLogging((level, message, containsPii) =>
+                 {
+                     Debug.WriteLine($"MSAL: {level} {message} ");
+                 }, LogLevel.Warning, enablePiiLogging: false, enableDefaultPlatformLogging: true)
+                .Build();
 
+            // It's good practice to not do work on the UI thread, so use ConfigureAwait(false) whenever possible.
+            IEnumerable<IAccount> accounts = await PublicClientApp.GetAccountsAsync().ConfigureAwait(false);
+            IAccount firstAccount = accounts.FirstOrDefault();
+
+            try
+            {
+                authResult = await PublicClientApp.AcquireTokenSilent(scopes, firstAccount)
+                                                  .ExecuteAsync();
+            }
+            catch (MsalUiRequiredException ex)
+            {
+                // A MsalUiRequiredException happened on AcquireTokenSilentAsync. This indicates you need to call AcquireTokenAsync to acquire a token
+                Debug.WriteLine($"MsalUiRequiredException: {ex.Message}");
+
+                await Task.Yield();
+
+                try
+                {
+
+
+                    ContentDialog cd = null;
+                    authResult = await PublicClientApp.AcquireTokenWithDeviceCode(scopes, async (dcr) =>
+                    {
+                        await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+                        {
+                            cd = new ContentDialog();
+                            cd.Content = new StackPanel()
+                            {
+                                Children = { new TextBox() { TextWrapping = TextWrapping.Wrap, Height = 100, Text = dcr.Message }, new HyperlinkButton { NavigateUri = new Uri("https://www.microsoft.com/devicelogin"), Content = new TextBlock() { Text = "Here" } } }
+                            };
+                            _ = cd.ShowAsync();
+
+
+                        });
+                    }).ExecuteAsync()
+                        .ConfigureAwait(false); ;
+
+                    await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        cd?.Hide();
+                    });
+                }
+                catch (Exception exdc)
+                {
+
+                    throw;
+                }
+
+            }
+            return authResult.AccessToken;
+        }
         /// <summary>
         /// Signs in the user and obtains an access token for Microsoft Graph
         /// </summary>
